@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
+import * as Font from "expo-font";
+import AppLoading from "expo-app-loading";
+// import * as SplashScreen from 'expo-splash-screen';
 import {
   StyleSheet,
   Text,
@@ -11,17 +14,63 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   TouchableWithoutFeedback,
+  // Dimensions,
 } from "react-native";
+
+const initialState = {
+  email: "",
+  password: "",
+};
+
+// SplashScreen.preventAutoHideAsync();
+
+async function loadApplication() {
+  await Font.loadAsync({
+    Oswald: require("./src/fonts/Oswald/Oswald-VariableFont_wght.ttf"),
+  });
+}
 
 export default function App() {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+  const [state, setState] = useState(initialState);
+  const [isReady, setIsReady] = useState(false);
+  // const [demensions, setDemensions] = useState(Dimensions.get('window').width - 20 * 2)
+
+  // useEffect(() => {
+  //   onChange = () => {
+  //     const width = Dimensions.get('window').width - 20 * 2;
+  //     console.log('width', width);
+  //     setDemensions(width)
+  //   }
+  //   Dimensions.addEventListener('change', onChange)
+  //   return () => {EventSubscription.remove('change', onChange)}
+  // }, [Dimensions]);
+
+  function onSubmit() {
+    setIsShowKeyboard(false);
+    Keyboard.dismiss();
+    console.log(state);
+    setState(initialState);
+  }
+
   function keyboardHide() {
     setIsShowKeyboard(false);
     Keyboard.dismiss();
   }
+
+  if (!isReady) {
+    return (
+      <AppLoading
+        startAsync={loadApplication}
+        onFinish={() => setIsReady(true)}
+        onError={console.warn}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <TouchableWithoutFeedback onPress={()=> keyboardHide()}>
+      <TouchableWithoutFeedback onPress={() => keyboardHide()}>
         <ImageBackground
           style={styles.image}
           source={require("./src/images/pexels-lukas-669576.jpg")}
@@ -35,8 +84,9 @@ export default function App() {
               style={{
                 ...styles.form,
                 ...Platform.select({
-                  ios: { marginBottom: isShowKeyboard ? 100 : 0 },
-                  android: { marginBottom: isShowKeyboard ? 100 : 0 },
+                  ios: { marginBottom: isShowKeyboard ? 80 : 0 },
+                  android: { marginBottom: isShowKeyboard ? 80 : 0 },
+                  // width: demensions,
                 }),
               }}
             >
@@ -45,6 +95,10 @@ export default function App() {
                 <TextInput
                   style={styles.input}
                   onFocus={() => setIsShowKeyboard(true)}
+                  value={state.email}
+                  onChangeText={(value) =>
+                    setState((prevState) => ({ ...prevState, email: value }))
+                  }
                 />
               </View>
               <View style={{ marginTop: 20 }}>
@@ -53,13 +107,17 @@ export default function App() {
                   style={styles.input}
                   secureTextEntry
                   onFocus={() => setIsShowKeyboard(true)}
+                  value={state.password}
+                  onChangeText={(value) =>
+                    setState((prevState) => ({ ...prevState, password: value }))
+                  }
                 />
               </View>
               <View>
                 <TouchableOpacity
                   style={styles.button}
                   activeOpacity={0.7}
-                  onPress={() => keyboardHide()}
+                  onPress={() => onSubmit()}
                 >
                   <Text style={styles.buttonText}>SIGN IN</Text>
                 </TouchableOpacity>
@@ -90,6 +148,8 @@ const styles = StyleSheet.create({
     marginBottom: 100,
   },
   headerText: {
+    fontSize: 30,
+    fontFamily: "Oswald",
     fontSize: 30,
   },
   form: {
